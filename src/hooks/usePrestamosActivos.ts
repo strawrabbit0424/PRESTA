@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient'
 export type Prestamo = {
     id: string
     tipo_articulo_id: string
+    tipo_articulo_2_id: string | null
     nombre_completo: string
     tipo_identificacion: string
     numero_telefono: string

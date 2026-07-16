@@ -20,7 +20,7 @@ function Historial() {
     const { tipos } = useTiposArticulo()
     const [abierto, setAbierto] = useState<string | null>(null)
 
-    const nombreTipo = (id: string) => tipos.find((t) => t.id === id)?.nombre ?? 'Artículo'
+    const nombreTipo = (id: string | null) => tipos.find((t) => t.id === id)?.nombre ?? ''
 
     return (
         <div className="min-h-screen">
@@ -65,38 +65,43 @@ function Historial() {
 
                         <div className="overflow-x-auto">
                             <table
-                                className={`w-full text-sm border-t border-border print:border-t-0 print:table min-w-[600px] ${abierto === grupo.fecha ? 'table' : 'hidden'
+                                className={`w-full text-sm border-t border-border print:border-t-0 print:table min-w-[640px] ${abierto === grupo.fecha ? 'table' : 'hidden'
                                     }`}
                             >
                                 <thead>
                                     <tr className="border-b border-border">
                                         <th className="text-left px-4 py-2 font-medium text-muted print:px-0">Nombre</th>
-                                        <th className="text-left px-4 py-2 font-medium text-muted print:px-2">Artículo</th>
+                                        <th className="text-left px-4 py-2 font-medium text-muted print:px-2">Artículo(s)</th>
                                         <th className="text-left px-4 py-2 font-medium text-muted print:px-2">Identificación</th>
                                         <th className="text-left px-4 py-2 font-medium text-muted print:px-2">Teléfono</th>
                                         <th className="text-left px-4 py-2 font-medium text-muted print:px-2">Horario</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {grupo.prestamos.map((p) => (
-                                        <tr key={p.id} className="border-b border-border last:border-0">
-                                            <td className="px-4 py-2 text-ink print:px-0">{p.nombre_completo}</td>
-                                            <td className="px-4 py-2 text-ink print:px-2">{nombreTipo(p.tipo_articulo_id)}</td>
-                                            <td className="px-4 py-2 text-ink print:px-2">{p.tipo_identificacion}</td>
-                                            <td className="px-4 py-2 text-ink print:px-2">{p.numero_telefono}</td>
-                                            <td className="px-4 py-2 text-muted print:px-2">
-                                                {new Date(p.hora_inicio).toLocaleTimeString('es-MX', {
-                                                    hour: '2-digit',
-                                                    minute: '2-digit',
-                                                })}
-                                                {' – '}
-                                                {new Date(p.hora_fin).toLocaleTimeString('es-MX', {
-                                                    hour: '2-digit',
-                                                    minute: '2-digit',
-                                                })}
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {grupo.prestamos.map((p) => {
+                                        const articulos = [nombreTipo(p.tipo_articulo_id), nombreTipo(p.tipo_articulo_2_id)]
+                                            .filter(Boolean)
+                                            .join(' + ')
+                                        return (
+                                            <tr key={p.id} className="border-b border-border last:border-0">
+                                                <td className="px-4 py-2 text-ink print:px-0">{p.nombre_completo}</td>
+                                                <td className="px-4 py-2 text-ink print:px-2">{articulos}</td>
+                                                <td className="px-4 py-2 text-ink print:px-2">{p.tipo_identificacion}</td>
+                                                <td className="px-4 py-2 text-ink print:px-2">{p.numero_telefono}</td>
+                                                <td className="px-4 py-2 text-muted print:px-2">
+                                                    {new Date(p.hora_inicio).toLocaleTimeString('es-MX', {
+                                                        hour: '2-digit',
+                                                        minute: '2-digit',
+                                                    })}
+                                                    {' – '}
+                                                    {new Date(p.hora_fin).toLocaleTimeString('es-MX', {
+                                                        hour: '2-digit',
+                                                        minute: '2-digit',
+                                                    })}
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}
                                 </tbody>
                             </table>
                         </div>

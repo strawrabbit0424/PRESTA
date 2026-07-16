@@ -26,6 +26,8 @@ function Dashboard() {
         return () => clearInterval(intervalo)
     }, [])
 
+    const nombreTipo = (id: string | null) => tipos.find((t) => t.id === id)?.nombre ?? ''
+
     async function marcarDevuelta(id: string) {
         await supabase
             .from('prestamos')
@@ -76,7 +78,12 @@ function Dashboard() {
             <div className="p-6 max-w-4xl mx-auto space-y-6">
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {tipos.map((t) => {
-                        const enUso = prestamos.filter((p) => p.tipo_articulo_id === t.id).length
+                        const enUso = prestamos.reduce((acc, p) => {
+                            let count = 0
+                            if (p.tipo_articulo_id === t.id) count++
+                            if (p.tipo_articulo_2_id === t.id) count++
+                            return acc + count
+                        }, 0)
                         const disponibles = t.total - enUso
                         return (
                             <div key={t.id} className="bg-surface rounded-lg border border-border p-4">
@@ -123,10 +130,11 @@ function Dashboard() {
                 </div>
 
                 <div className="bg-surface rounded-lg border border-border overflow-x-auto">
-                    <table className="w-full text-sm min-w-[560px]">
+                    <table className="w-full text-sm min-w-[640px]">
                         <thead>
                             <tr className="border-b border-border">
                                 <th className="text-left px-4 py-3 font-medium text-muted">Nombre</th>
+                                <th className="text-left px-4 py-3 font-medium text-muted">Artículo(s)</th>
                                 <th className="text-left px-4 py-3 font-medium text-muted">Teléfono</th>
                                 <th className="text-left px-4 py-3 font-medium text-muted">Llevan</th>
                                 <th className="text-left px-4 py-3 font-medium text-muted">Falta</th>
@@ -136,7 +144,7 @@ function Dashboard() {
                         <tbody>
                             {prestamosOrdenados.length === 0 && (
                                 <tr>
-                                    <td colSpan={5} className="px-4 py-8 text-center text-muted">
+                                    <td colSpan={6} className="px-4 py-8 text-center text-muted">
                                         No hay préstamos activos.
                                     </td>
                                 </tr>
@@ -145,6 +153,9 @@ function Dashboard() {
                                 const llevanMin = (Date.now() - new Date(p.hora_inicio).getTime()) / 60000
                                 const faltaMin = 30 - llevanMin
                                 const colorFalta = faltaMin < 0 ? 'text-danger' : llevanMin >= 20 ? 'text-accent' : 'text-ink'
+                                const articulos = [nombreTipo(p.tipo_articulo_id), nombreTipo(p.tipo_articulo_2_id)]
+                                    .filter(Boolean)
+                                    .join(' + ')
 
                                 return (
                                     <>
@@ -154,6 +165,7 @@ function Dashboard() {
                                             className="border-b border-border last:border-0 cursor-pointer hover:bg-bg"
                                         >
                                             <td className="px-4 py-3 font-medium text-ink">{p.nombre_completo}</td>
+                                            <td className="px-4 py-3 text-ink">{articulos}</td>
                                             <td className="px-4 py-3 text-ink">{p.numero_telefono}</td>
                                             <td className="px-4 py-3 tabular-nums font-mono text-ink">{fmt(llevanMin)}</td>
                                             <td className={`px-4 py-3 tabular-nums font-mono ${colorFalta}`}>{fmt(faltaMin)}</td>
@@ -171,7 +183,7 @@ function Dashboard() {
                                         </tr>
                                         {expandido === p.id && (
                                             <tr className="border-b border-border bg-bg">
-                                                <td colSpan={5} className="px-4 py-3 text-sm text-muted">
+                                                <td colSpan={6} className="px-4 py-3 text-sm text-muted">
                                                     Identificación: {p.tipo_identificacion} · Hora de inicio:{' '}
                                                     {new Date(p.hora_inicio).toLocaleTimeString('es-MX', {
                                                         hour: '2-digit',
