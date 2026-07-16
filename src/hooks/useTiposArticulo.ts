@@ -19,5 +19,5 @@ export function useTiposArticulo() {
         cargar()
     }, [cargar])
 
-    return { tipos }
+    return { tipos, recargar: cargar }
 }

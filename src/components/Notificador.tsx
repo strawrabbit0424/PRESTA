@@ -2,15 +2,20 @@ import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useSesion } from '../hooks/useSesion'
 import { usePrestamosActivos, type Prestamo } from '../hooks/usePrestamosActivos'
-import { reproducirBeep, activarAudio } from '../lib/beep'
+import { reproducirBeep } from '../lib/beep'
+
+type Aviso = {
+    id: string
+    nombre: string
+    telefono: string
+    umbral: 20 | 30
+}
 
 function Notificador() {
     const { session } = useSesion()
     const { prestamos } = usePrestamosActivos()
     const procesando = useRef<Set<string>>(new Set())
-    const [permiso, setPermiso] = useState<NotificationPermission>(
-        'Notification' in window ? Notification.permission : 'denied'
-    )
+    const [avisos, setAvisos] = useState<Aviso[]>([])
 
     useEffect(() => {
         if (!session) return
@@ -36,33 +41,37 @@ function Notificador() {
 
     async function avisar(p: Prestamo, umbral: 20 | 30) {
         reproducirBeep()
-        if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification(`${p.nombre_completo} lleva ${umbral} min`, {
-                body: `Teléfono: ${p.numero_telefono}`,
-            })
-        }
+        setAvisos((actuales) => [
+            ...actuales,
+            { id: p.id + '-' + umbral, nombre: p.nombre_completo, telefono: p.numero_telefono, umbral },
+        ])
         const campo = umbral === 20 ? 'avisado_20' : 'avisado_30'
         await supabase.from('prestamos').update({ [campo]: true }).eq('id', p.id)
     }
 
-    function activar() {
-        activarAudio()
-        if ('Notification' in window) {
-            Notification.requestPermission().then(setPermiso)
-        }
+    function cerrar(id: string) {
+        setAvisos((actuales) => actuales.filter((a) => a.id !== id))
     }
 
-    if (!session || permiso === 'granted') return null
+    if (!session || avisos.length === 0) return null
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-border px-4 py-3 flex items-center justify-between gap-3 z-50 print:hidden">
-            <p className="text-sm text-muted">Activa los avisos para ver y escuchar la alerta de los 20/30 min.</p>
-            <button
-                onClick={activar}
-                className="rounded-md bg-accent px-3.5 py-2 text-white text-sm font-medium hover:bg-accent-hover whitespace-nowrap"
-            >
-                Activar avisos
-            </button>
+        <div className="fixed top-4 right-4 left-4 sm:left-auto sm:w-80 space-y-2 z-50 print:hidden">
+            {avisos.map((a) => (
+                <div key={a.id} className="bg-surface border border-accent rounded-lg shadow-lg p-4">
+                    <div className="flex items-start justify-between gap-2">
+                        <div>
+                            <p className="text-sm font-medium text-ink">
+                                {a.nombre} lleva {a.umbral} min
+                            </p>
+                            <p className="text-sm text-muted mt-0.5">{a.telefono}</p>
+                        </div>
+                        <button onClick={() => cerrar(a.id)} className="text-muted hover:text-ink text-lg leading-none">
+                            ×
+                        </button>
+                    </div>
+                </div>
+            ))}
         </div>
     )
 }

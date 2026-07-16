@@ -15,9 +15,11 @@ function fmt(min: number) {
 function Dashboard() {
     const navigate = useNavigate()
     const { prestamos, recargar } = usePrestamosActivos()
-    const { tipos } = useTiposArticulo()
+    const { tipos, recargar: recargarTipos } = useTiposArticulo()
     const [expandido, setExpandido] = useState<string | null>(null)
     const [, forzarRender] = useState(0)
+    const [editandoId, setEditandoId] = useState<string | null>(null)
+    const [valorEditado, setValorEditado] = useState('')
 
     useEffect(() => {
         const intervalo = setInterval(() => forzarRender((n) => n + 1), 1000)
@@ -30,6 +32,17 @@ function Dashboard() {
             .update({ estado: 'finalizado', hora_fin: new Date().toISOString() })
             .eq('id', id)
         recargar()
+    }
+
+    async function guardarTotal(id: string) {
+        const nuevoTotal = parseInt(valorEditado, 10)
+        if (isNaN(nuevoTotal) || nuevoTotal < 0) {
+            setEditandoId(null)
+            return
+        }
+        await supabase.from('tipos_articulo').update({ total: nuevoTotal }).eq('id', id)
+        await recargarTipos()
+        setEditandoId(null)
     }
 
     const handleLogout = async () => {
@@ -72,6 +85,38 @@ function Dashboard() {
                                     {disponibles}
                                     <span className="text-sm text-muted font-normal"> / {t.total}</span>
                                 </p>
+
+                                {editandoId === t.id ? (
+                                    <div className="flex items-center gap-1.5 mt-2">
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            autoFocus
+                                            value={valorEditado}
+                                            onChange={(e) => setValorEditado(e.target.value)}
+                                            className="w-16 rounded border border-border px-2 py-1 text-sm"
+                                        />
+                                        <button
+                                            onClick={() => guardarTotal(t.id)}
+                                            className="text-xs text-accent font-medium hover:text-accent-hover"
+                                        >
+                                            Guardar
+                                        </button>
+                                        <button onClick={() => setEditandoId(null)} className="text-xs text-muted hover:text-ink">
+                                            Cancelar
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => {
+                                            setEditandoId(t.id)
+                                            setValorEditado(String(t.total))
+                                        }}
+                                        className="text-xs text-muted hover:text-ink mt-2 underline"
+                                    >
+                                        Cambiar cantidad
+                                    </button>
+                                )}
                             </div>
                         )
                     })}
