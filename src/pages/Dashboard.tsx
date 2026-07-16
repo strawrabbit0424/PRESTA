@@ -77,8 +77,8 @@ function Dashboard() {
                     })}
                 </div>
 
-                <div className="bg-surface rounded-lg border border-border overflow-hidden">
-                    <table className="w-full text-sm">
+                <div className="bg-surface rounded-lg border border-border overflow-x-auto">
+                    <table className="w-full text-sm min-w-[560px]">
                         <thead>
                             <tr className="border-b border-border">
                                 <th className="text-left px-4 py-3 font-medium text-muted">Nombre</th>
