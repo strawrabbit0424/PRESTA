@@ -12,6 +12,8 @@ function FormularioPublico() {
     const [tiposArticulo, setTiposArticulo] = useState<TipoArticulo[]>([])
     const [nombreCompleto, setNombreCompleto] = useState('')
     const [tipoArticuloId, setTipoArticuloId] = useState('')
+    const [segundoArticulo, setSegundoArticulo] = useState(false)
+    const [tipoArticuloId2, setTipoArticuloId2] = useState('')
     const [tipoIdentificacion, setTipoIdentificacion] = useState('')
     const [identificacionOtro, setIdentificacionOtro] = useState('')
     const [numeroTelefono, setNumeroTelefono] = useState('')
@@ -49,6 +51,11 @@ function FormularioPublico() {
             return
         }
 
+        if (segundoArticulo && !tipoArticuloId2) {
+            setError('Selecciona el segundo artículo o desmarca la opción.')
+            return
+        }
+
         if (numeroTelefono.length !== 10) {
             setError('El teléfono debe tener 10 dígitos.')
             return
@@ -59,6 +66,7 @@ function FormularioPublico() {
         const { error: insertError } = await supabase.from('prestamos').insert({
             nombre_completo: nombreCompleto.trim(),
             tipo_articulo_id: tipoArticuloId,
+            tipo_articulo_2_id: segundoArticulo ? tipoArticuloId2 : null,
             tipo_identificacion: identificacionFinal,
             numero_telefono: numeroTelefono.trim(),
         })
@@ -108,7 +116,7 @@ function FormularioPublico() {
                     </div>
 
                     <div>
-                        <label className={labelClase}>¿Qué te llevas?</label>
+                        <label className={labelClase}>¿Qué usarás?</label>
                         <select
                             required
                             className={inputClase}
@@ -123,6 +131,38 @@ function FormularioPublico() {
                             ))}
                         </select>
                     </div>
+
+                    <label className="flex items-center gap-2 text-sm text-ink cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={segundoArticulo}
+                            onChange={(e) => {
+                                setSegundoArticulo(e.target.checked)
+                                if (!e.target.checked) setTipoArticuloId2('')
+                            }}
+                            className="w-4 h-4"
+                        />
+                        Llevo un segundo artículo (misma identificación)
+                    </label>
+
+                    {segundoArticulo && (
+                        <div>
+                            <label className={labelClase}>Segundo artículo</label>
+                            <select
+                                required
+                                className={inputClase}
+                                value={tipoArticuloId2}
+                                onChange={(e) => setTipoArticuloId2(e.target.value)}
+                            >
+                                <option value="">Selecciona una opción</option>
+                                {tiposArticulo.map((t) => (
+                                    <option key={t.id} value={t.id}>
+                                        {t.nombre}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
 
                     <div>
                         <label className={labelClase}>Identificación que dejas</label>
