@@ -10,6 +10,7 @@ export type PrestamoFinalizado = {
     numero_telefono: string
     hora_inicio: string
     hora_fin: string
+    foto_identificacion_path: string | null
 }
 
 export type GrupoDia = {
