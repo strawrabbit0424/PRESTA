@@ -17,6 +17,8 @@ function FormularioPublico() {
     const [tipoIdentificacion, setTipoIdentificacion] = useState('')
     const [identificacionOtro, setIdentificacionOtro] = useState('')
     const [numeroTelefono, setNumeroTelefono] = useState('')
+    const [foto, setFoto] = useState<File | null>(null)
+    const [previewFoto, setPreviewFoto] = useState<string | null>(null)
     const [enviando, setEnviando] = useState(false)
     const [enviado, setEnviado] = useState(false)
     const [error, setError] = useState('')
@@ -37,6 +39,12 @@ function FormularioPublico() {
     const handleTelefonoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const soloNumeros = e.target.value.replace(/\D/g, '').slice(0, 10)
         setNumeroTelefono(soloNumeros)
+    }
+
+    const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const archivo = e.target.files?.[0] ?? null
+        setFoto(archivo)
+        setPreviewFoto(archivo ? URL.createObjectURL(archivo) : null)
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -61,7 +69,25 @@ function FormularioPublico() {
             return
         }
 
+        if (!foto) {
+            setError('Toma o sube una foto de tu identificación.')
+            return
+        }
+
         setEnviando(true)
+
+        const extension = foto.name.split('.').pop() || 'jpg'
+        const nombreArchivo = `${crypto.randomUUID()}.${extension}`
+
+        const { data: subida, error: errorSubida } = await supabase.storage
+            .from('identificaciones')
+            .upload(nombreArchivo, foto)
+
+        if (errorSubida || !subida) {
+            setEnviando(false)
+            setError('No se pudo subir la foto de identificación. Intenta de nuevo.')
+            return
+        }
 
         const { error: insertError } = await supabase.from('prestamos').insert({
             nombre_completo: nombreCompleto.trim(),
@@ -69,6 +95,7 @@ function FormularioPublico() {
             tipo_articulo_2_id: segundoArticulo ? tipoArticuloId2 : null,
             tipo_identificacion: identificacionFinal,
             numero_telefono: numeroTelefono.trim(),
+            foto_identificacion_path: subida.path,
         })
 
         setEnviando(false)
@@ -116,7 +143,7 @@ function FormularioPublico() {
                     </div>
 
                     <div>
-                        <label className={labelClase}>¿Qué usarás?</label>
+                        <label className={labelClase}>¿Qué te llevas?</label>
                         <select
                             required
                             className={inputClase}
@@ -195,19 +222,34 @@ function FormularioPublico() {
                     )}
 
                     <div>
-                        <label className={labelClase}>Número de teléfono</label>
+                        <label className={labelClase}>Foto de tu identificación</label>
                         <input
-                            type="tel"
+                            type="file"
                             required
-                            inputMode="numeric"
-                            pattern="[0-9]{10}"
-                            title="10 dígitos, solo números"
-                            className={inputClase}
-                            value={numeroTelefono}
-                            onChange={handleTelefonoChange}
-                            placeholder="9981234567"
+                            accept="image/*"
+                            capture="environment"
+                            onChange={handleFotoChange}
+                            className="w-full text-sm text-muted file:mr-3 file:rounded-md file:border-0 file:bg-accent file:px-3.5 file:py-2 file:text-white file:text-sm file:font-medium"
                         />
+                        {previewFoto && (
+                            <img src={previewFoto} alt="Vista previa de identificación" className="mt-2 rounded-md max-h-40 object-contain border border-border" />
+                        )}
                     </div>
+                </div>
+
+                <div>
+                    <label className={labelClase}>Número de teléfono</label>
+                    <input
+                        type="tel"
+                        required
+                        inputMode="numeric"
+                        pattern="[0-9]{10}"
+                        title="10 dígitos, solo números"
+                        className={inputClase}
+                        value={numeroTelefono}
+                        onChange={handleTelefonoChange}
+                        placeholder="9981234567"
+                    />
                 </div>
 
                 {error && <p className="text-danger text-sm mt-4">{error}</p>}

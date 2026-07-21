@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabaseClient'
 import { useNavigate, Link } from 'react-router-dom'
 import { usePrestamosActivos } from '../hooks/usePrestamosActivos'
 import { useTiposArticulo } from '../hooks/useTiposArticulo'
+import { verIdentificacion } from '../lib/verIdentificacion'
 
 function fmt(min: number) {
     const s = Math.abs(Math.round(min * 60))
@@ -184,11 +185,26 @@ function Dashboard() {
                                         {expandido === p.id && (
                                             <tr className="border-b border-border bg-bg">
                                                 <td colSpan={6} className="px-4 py-3 text-sm text-muted">
-                                                    Identificación: {p.tipo_identificacion} · Hora de inicio:{' '}
-                                                    {new Date(p.hora_inicio).toLocaleTimeString('es-MX', {
-                                                        hour: '2-digit',
-                                                        minute: '2-digit',
-                                                    })}
+                                                    <div className="flex items-center gap-3 flex-wrap">
+                                                        <span>
+                                                            Identificación: {p.tipo_identificacion} · Hora de inicio:{' '}
+                                                            {new Date(p.hora_inicio).toLocaleTimeString('es-MX', {
+                                                                hour: '2-digit',
+                                                                minute: '2-digit',
+                                                            })}
+                                                        </span>
+                                                        {p.foto_identificacion_path && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation()
+                                                                    verIdentificacion(p.foto_identificacion_path)
+                                                                }}
+                                                                className="text-xs text-accent hover:text-accent-hover underline"
+                                                            >
+                                                                Ver foto de identificación
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </td>
                                             </tr>
                                         )}

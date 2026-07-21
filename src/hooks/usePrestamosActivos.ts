@@ -12,6 +12,7 @@ export type Prestamo = {
     estado: string
     avisado_20: boolean
     avisado_30: boolean
+    foto_identificacion_path: string | null
 }
 
 export function usePrestamosActivos() {

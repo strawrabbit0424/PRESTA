@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useHistorial } from '../hooks/useHistorial'
 import { useTiposArticulo } from '../hooks/useTiposArticulo'
+import { verIdentificacion } from '../lib/verIdentificacion'
 
 function formatearFecha(fecha: string) {
     const [year, month, day] = fecha.split('-').map(Number)
@@ -75,6 +76,7 @@ function Historial() {
                                         <th className="text-left px-4 py-2 font-medium text-muted print:px-2">Identificación</th>
                                         <th className="text-left px-4 py-2 font-medium text-muted print:px-2">Teléfono</th>
                                         <th className="text-left px-4 py-2 font-medium text-muted print:px-2">Horario</th>
+                                        <th className="text-left px-4 py-2 font-medium text-muted print:px-2">ID</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -98,6 +100,16 @@ function Historial() {
                                                         hour: '2-digit',
                                                         minute: '2-digit',
                                                     })}
+                                                </td>
+                                                <td className="px-4 py-2 print:hidden">
+                                                    {p.foto_identificacion_path && (
+                                                        <button
+                                                            onClick={() => verIdentificacion(p.foto_identificacion_path)}
+                                                            className="text-xs text-accent hover:text-accent-hover underline"
+                                                        >
+                                                            Ver
+                                                        </button>
+                                                    )}
                                                 </td>
                                             </tr>
                                         )
