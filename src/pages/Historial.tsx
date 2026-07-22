@@ -48,9 +48,11 @@ function Historial() {
     function exportarExcel() {
         const gruposAExportar = grupos.filter((g) => seleccionados.has(g.fecha))
 
-        const filas = gruposAExportar.flatMap((grupo) =>
-            grupo.prestamos.map((p) => ({
-                Fecha: formatearFecha(grupo.fecha),
+        gruposAExportar.forEach((grupo) => {
+            const [year, month, day] = grupo.fecha.split('-')
+            const fechaCorta = `${day}-${month}`
+
+            const filas = grupo.prestamos.map((p) => ({
                 Nombre: p.nombre_completo,
                 'Artículo(s)': [nombreTipo(p.tipo_articulo_id), nombreTipo(p.tipo_articulo_2_id)]
                     .filter(Boolean)
@@ -66,24 +68,21 @@ function Historial() {
                     minute: '2-digit',
                 }),
             }))
-        )
 
-        const hoja = XLSX.utils.json_to_sheet(filas)
-        hoja['!cols'] = [
-            { wch: 24 }, // Fecha
-            { wch: 24 }, // Nombre
-            { wch: 16 }, // Artículo(s)
-            { wch: 16 }, // Identificación
-            { wch: 14 }, // Teléfono
-            { wch: 12 }, // Hora inicio
-            { wch: 12 }, // Hora fin
-        ]
+            const hoja = XLSX.utils.json_to_sheet(filas)
+            hoja['!cols'] = [
+                { wch: 24 }, // Nombre
+                { wch: 16 }, // Artículo(s)
+                { wch: 16 }, // Identificación
+                { wch: 14 }, // Teléfono
+                { wch: 12 }, // Hora inicio
+                { wch: 12 }, // Hora fin
+            ]
 
-        const libro = XLSX.utils.book_new()
-        XLSX.utils.book_append_sheet(libro, hoja, 'Historial')
-
-        const nombreArchivo = `presta-historial-${new Date().toISOString().slice(0, 10)}.xlsx`
-        XLSX.writeFile(libro, nombreArchivo)
+            const libro = XLSX.utils.book_new()
+            XLSX.utils.book_append_sheet(libro, hoja, fechaCorta)
+            XLSX.writeFile(libro, `presta-${fechaCorta}-${year}.xlsx`)
+        })
     }
 
     return (
