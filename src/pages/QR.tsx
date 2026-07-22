@@ -27,6 +27,13 @@ function QR() {
                 </div>
 
                 <p className="text-xs text-muted mt-4 break-all max-w-xs text-center">{url}</p>
+
+                <Link
+                    to="/"
+                    className="mt-4 text-sm text-accent hover:text-accent-hover underline print:hidden"
+                >
+                    Abrir formulario manual
+                </Link>
             </div>
         </div>
     )

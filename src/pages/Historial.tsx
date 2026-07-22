@@ -93,7 +93,7 @@ function Historial() {
                 <h1 className="text-lg font-medium text-ink">Presta</h1>
                 <div className="flex items-center gap-4">
                     <Link to="/dashboard" className="text-muted text-sm hover:text-ink">
-                        ← Volver
+                        Volver
                     </Link>
                 </div>
             </header>
