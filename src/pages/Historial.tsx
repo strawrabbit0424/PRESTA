@@ -47,9 +47,10 @@ function Historial() {
 
     function exportarExcel() {
         const gruposAExportar = grupos.filter((g) => seleccionados.has(g.fecha))
+        const libro = XLSX.utils.book_new()
 
         gruposAExportar.forEach((grupo) => {
-            const [year, month, day] = grupo.fecha.split('-')
+            const [, month, day] = grupo.fecha.split('-')
             const fechaCorta = `${day}-${month}`
 
             const filas = grupo.prestamos.map((p) => ({
@@ -79,10 +80,11 @@ function Historial() {
                 { wch: 12 }, // Hora fin
             ]
 
-            const libro = XLSX.utils.book_new()
             XLSX.utils.book_append_sheet(libro, hoja, fechaCorta)
-            XLSX.writeFile(libro, `presta-${fechaCorta}-${year}.xlsx`)
         })
+
+        const nombreArchivo = `presta-historial-${new Date().toISOString().slice(0, 10)}.xlsx`
+        XLSX.writeFile(libro, nombreArchivo)
     }
 
     return (
